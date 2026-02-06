@@ -1,13 +1,13 @@
 const mapService = require('../services/maps.service');
 const { validationResult } = require('express-validator');
 
-
 module.exports.getCoordinates = async (req, res, next) => {
+    console.log('[getCoordinates] req.query =', req.query);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.error('[getCoordinates] validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
-
 
     const { address } = req.query;
 
@@ -15,14 +15,13 @@ module.exports.getCoordinates = async (req, res, next) => {
         const coordinates = await mapService.getAddressCoordinate(address);
         res.status(200).json(coordinates);
     } catch (error) {
-        res.status(404).json({ message: 'Coordinates not found' });
+        console.error('getCoordinates Error:', error.message);
+        res.status(400).json({ message: error.message });
     }
-}
+};
 
 module.exports.getDistanceTime = async (req, res, next) => {
-
     try {
-
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -33,19 +32,18 @@ module.exports.getDistanceTime = async (req, res, next) => {
         const distanceTime = await mapService.getDistanceTime(origin, destination);
 
         res.status(200).json(distanceTime);
-
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('getDistanceTime Error:', err.message);
+        res.status(400).json({ message: err.message });
     }
-}
+};
 
 module.exports.getAutoCompleteSuggestions = async (req, res, next) => {
-
     try {
-
+        console.log('[getAutoCompleteSuggestions] req.query =', req.query);
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.error('[getAutoCompleteSuggestions] validation errors:', errors.array());
             return res.status(400).json({ errors: errors.array() });
         }
 
@@ -55,7 +53,7 @@ module.exports.getAutoCompleteSuggestions = async (req, res, next) => {
 
         res.status(200).json(suggestions);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('getAutoCompleteSuggestions Error:', err.message);
+        res.status(400).json({ message: err.message });
     }
-}
+};

@@ -60,33 +60,48 @@ const Home = () => {
 
 
     const handlePickupChange = async (e) => {
-        setPickup(e.target.value)
-        try {
-            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`, {
-                params: { input: e.target.value },
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-
-            })
-            setPickupSuggestions(response.data)
-        } catch {
-            // handle error
+        const value = e.target.value
+        setPickup(value)
+        
+        // Only call API if input is 3 or more characters
+        if (value.length >= 3) {
+            try {
+                const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`, {
+                    params: { input: value },
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                setPickupSuggestions(response.data)
+            } catch (error) {
+                console.error('Error fetching pickup suggestions:', error)
+                setPickupSuggestions([])
+            }
+        } else {
+            setPickupSuggestions([])
         }
     }
 
     const handleDestinationChange = async (e) => {
-        setDestination(e.target.value)
-        try {
-            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`, {
-                params: { input: e.target.value },
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            })
-            setDestinationSuggestions(response.data)
-        } catch {
-            // handle error
+        const value = e.target.value
+        setDestination(value)
+        
+        // Only call API if input is 3 or more characters
+        if (value.length >= 3) {
+            try {
+                const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/maps/get-suggestions`, {
+                    params: { input: value },
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                setDestinationSuggestions(response.data)
+            } catch (error) {
+                console.error('Error fetching destination suggestions:', error)
+                setDestinationSuggestions([])
+            }
+        } else {
+            setDestinationSuggestions([])
         }
     }
 
@@ -167,34 +182,52 @@ const Home = () => {
 
 
     async function findTrip() {
-        setVehiclePanel(true)
-        setPanelOpen(false)
+        if (!pickup || !destination) {
+            alert('Please select both pickup and destination')
+            return
+        }
 
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/rides/get-fare`, {
-            params: { pickup, destination },
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-        })
+        try {
+            setVehiclePanel(true)
+            setPanelOpen(false)
 
+            const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/rides/get-fare`, {
+                params: { pickup, destination },
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            })
 
-        setFare(response.data)
-
-
+            setFare(response.data)
+        } catch (error) {
+            console.error('Error fetching fare:', error)
+            alert('Failed to fetch fare. Please check the addresses.')
+            setVehiclePanel(false)
+        }
     }
 
     async function createRide() {
-        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/rides/create`, {
-            pickup,
-            destination,
-            vehicleType
-        }, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-        })
+        if (!pickup || !destination || !vehicleType) {
+            alert('Please fill in all ride details')
+            return
+        }
 
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/rides/create`, {
+                pickup,
+                destination,
+                vehicleType
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            })
 
+            console.log('Ride created:', response.data)
+        } catch (error) {
+            console.error('Error creating ride:', error)
+            alert('Failed to create ride. Please check the details.')
+        }
     }
 
     return (
@@ -202,6 +235,7 @@ const Home = () => {
             <img className='w-16 absolute left-5 top-5' src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="" />
             <div className='h-screen w-screen'>
                 {/* image for temporary use  */}
+                <img className='h-full w-full object-cover' src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif" alt="city road" />
                 <LiveTracking />
             </div>
             <div className=' flex flex-col justify-end h-screen absolute top-0 w-full'>
